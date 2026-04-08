@@ -74,11 +74,13 @@ class HandReconstructor:
 
         # --- 1. FoV Estimation (MoGe) ---
         all_fov_x = []
+        moge_outputs = []  # per-frame dicts with keys: points, depth, mask, normal
         for i in range(N):
             img = images[i]
-            fov_x = self.moge_pipeline.infer(img)
-            all_fov_x.append(fov_x)
-        
+            moge_out = self.moge_pipeline.infer(img)
+            all_fov_x.append(moge_out["fov_x"])
+            moge_outputs.append({k: moge_out[k] for k in ("points", "depth", "mask")})
+
         # Use median FoV across all frames
         fov_x = np.median(np.array(all_fov_x))
         img_focal = 0.5 * W / np.tan(0.5 * fov_x * np.pi / 180)
@@ -86,7 +88,7 @@ class HandReconstructor:
         # --- 2. Hand Pose and Translation Estimation (HaWoR) ---
         recon_results = self.hawor_pipeline.recon(images, img_focal, single_image=(N==1))
 
-        recon_results_new_transl = {'left': {}, 'right': {}, 'fov_x': fov_x}
+        recon_results_new_transl = {'left': {}, 'right': {}, 'fov_x': fov_x, 'moge': moge_outputs}
         # --- 3. Re-calculate Global Translation (MANO Alignment) ---
         for img_idx in range(N):
             for hand_type in ['left', 'right']:

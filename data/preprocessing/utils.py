@@ -14,20 +14,16 @@ def concatenate_ts_files(folder, video_name, batch_counts):
         for i in range(batch_counts):
             f.write(f"file '{video_name}_b{i:04d}.ts'\n")
 
-    try:
-        # Merge using ffmpeg concat demuxer
-        ffmpeg.input(inputs_path, format='concat', safe=0).output(
-            os.path.join(folder, f'{video_name}.mp4'),
-            c='copy'
-        ).run()
-    finally:
-        # Cleanup temporary TS files and list file
-        for i in range(batch_counts):
-            ts_file = os.path.join(folder, f"{video_name}_b{i:04d}.ts")
-            if os.path.exists(ts_file):
-                os.remove(ts_file)
-        if os.path.exists(inputs_path):
-            os.remove(inputs_path)
+    # Merge using ffmpeg concat demuxer
+    ffmpeg.input(inputs_path, format='concat', safe=0).output(
+        os.path.join(folder, f'{video_name}.mp4'),
+        c='copy'
+    ).run()
+
+    # Cleanup temporary TS files and list file
+    for i in range(batch_counts):
+        os.remove(os.path.join(folder, f"{video_name}_b{i:04d}.ts"))
+    os.remove(inputs_path)
 
 # ------------------------------------------------------
 # Create a new ffmpeg writer process
