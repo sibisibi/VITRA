@@ -187,6 +187,10 @@ weights/hawor/checkpoints
 weights/hawor/external
 weights/external/detector.pt
 
+# Allow MANO weights
+!weights/mano/*.pkl
+!weights/mano/*.npz
+
 #
 benchmark*/
 # configs/
